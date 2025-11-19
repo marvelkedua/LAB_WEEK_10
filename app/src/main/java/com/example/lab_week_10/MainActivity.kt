@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.lab_week_10.viewmodels.TotalViewModel
 
 class MainActivity : AppCompatActivity() {
-    // Inisialisasi ViewModel secara Lazy
     private val viewModel by lazy {
         ViewModelProvider(this)[TotalViewModel::class.java]
     }
@@ -16,7 +15,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         prepareViewModel()
     }
 
@@ -25,12 +23,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun prepareViewModel() {
-        // Set nilai awal (untuk handle rotasi agar tetap muncul nilai terakhir)
-        updateText(viewModel.total)
+        // Observe LiveData object
+        viewModel.total.observe(this) { total ->
+            updateText(total)
+        }
 
         findViewById<Button>(R.id.button_increment).setOnClickListener {
             viewModel.incrementTotal()
-            updateText(viewModel.total)
         }
     }
 }
