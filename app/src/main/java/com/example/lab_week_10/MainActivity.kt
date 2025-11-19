@@ -5,17 +5,52 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.room.Room
+import com.example.lab_week_10.database.Total
+import com.example.lab_week_10.database.TotalDatabase
 import com.example.lab_week_10.viewmodels.TotalViewModel
 
 class MainActivity : AppCompatActivity() {
+    // Inisialisasi Database
+    private val db by lazy { prepareDatabase() }
+
     private val viewModel by lazy {
         ViewModelProvider(this)[TotalViewModel::class.java]
+    }
+
+    companion object {
+        const val ID: Long = 1
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        initializeValueFromDatabase()
         prepareViewModel()
+    }
+
+    // Update database saat aplikasi dipause (keluar/background)
+    override fun onPause() {
+        super.onPause()
+        // Simpan nilai total saat ini ke DB
+        db.totalDao().update(Total(ID, viewModel.total.value!!))
+    }
+
+    private fun prepareDatabase(): TotalDatabase {
+        return Room.databaseBuilder(
+            applicationContext,
+            TotalDatabase::class.java, "total-database"
+        ).allowMainThreadQueries().build() // allowMainThreadQueries untuk penyederhanaan tutorial
+    }
+
+    private fun initializeValueFromDatabase() {
+        val totalList = db.totalDao().getTotal(ID)
+        if (totalList.isEmpty()) {
+            db.totalDao().insert(Total(id = 1, total = 0))
+        } else {
+            viewModel.setTotal(totalList.first().total)
+        }
     }
 
     private fun updateText(total: Int) {
@@ -23,11 +58,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun prepareViewModel() {
-        // Observe LiveData object
         viewModel.total.observe(this) { total ->
             updateText(total)
         }
-
         findViewById<Button>(R.id.button_increment).setOnClickListener {
             viewModel.incrementTotal()
         }

@@ -18,4 +18,7 @@ class TotalViewModel: ViewModel() {
         // Update value menggunakan postValue
         _total.postValue(_total.value?.plus(1))
     }
+    fun setTotal(newTotal: Int) {
+        _total.postValue(newTotal)
+    }
 }
